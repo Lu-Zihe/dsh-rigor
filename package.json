@@ -1,16 +1,30 @@
 {
   "name": "dsh-deep-think",
   "version": "0.2.0",
-  "description": "Measure how much an agent thinks before it acts. Parses DeepSeek Harness session logs and reports thinking-before-acting, eager-acting rate, and unsourced-claim rate. 量化 Agent「动手前想了几句话」，定位「想两句就动手」型偷懒。",
+  "description": "Measure how much an agent thinks before it acts. Parses DeepSeek Harness session logs and reports thinking-before-acting, eager-acting rate, and unsourced-claim rate; optionally rejects and forces a redo. 量化 Agent「动手前想了几句话」，不达标的回答会被驳回重写。",
   "type": "module",
   "main": "lib/index.js",
+  "types": "lib/types/index.d.ts",
   "bin": {
     "deep-think": "lib/cli.js"
   },
   "exports": {
-    ".": "./lib/index.js",
-    "./core": "./lib/core/analyze.js",
-    "./session": "./lib/core/session.js",
+    ".": {
+      "types": "./lib/types/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./core": {
+      "types": "./lib/types/analyze.d.ts",
+      "default": "./lib/core/analyze.js"
+    },
+    "./intercept": {
+      "types": "./lib/types/intercept.d.ts",
+      "default": "./lib/core/intercept.js"
+    },
+    "./session": {
+      "types": "./lib/types/session.d.ts",
+      "default": "./lib/core/session.js"
+    },
     "./cordis.patch.yml": "./cordis.patch.yml",
     "./package.json": "./package.json"
   },
@@ -19,6 +33,7 @@
     "cordis.patch.yml",
     "README.md",
     "README.en.md",
+    "CHANGELOG.md",
     "LICENSE"
   ],
   "engines": {
@@ -31,6 +46,11 @@
   "dsh": {
     "bundle": {
       "patch": "./cordis.patch.yml"
+    },
+    "compatibility": {
+      "dsh": ">=0.1.0-rc.8",
+      "verified": false,
+      "note": "CLI 半已验证（23 项断言 + 真实会话）；插件拦截半未在真实 profile 挂载验证，事件名与注入路径来自上游代码与文档。"
     }
   },
   "peerDependencies": {
@@ -47,9 +67,10 @@
     "plugin",
     "agent",
     "reasoning",
+    "thinking",
     "observability",
     "eval",
-    "thinking"
+    "guardrail"
   ],
   "license": "MIT"
 }
