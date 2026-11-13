@@ -1,0 +1,51 @@
+{
+  "name": "dsh-deep-think",
+  "version": "0.1.0",
+  "description": "Measure how much an agent thinks before it acts. Parses DeepSeek Harness session logs and reports thinking-before-acting, eager-acting rate, and unsourced-claim rate. 量化 Agent「动手前想了几句话」，定位「想两句就动手」型偷懒。",
+  "type": "module",
+  "main": "lib/index.js",
+  "bin": {
+    "deep-think": "lib/cli.js"
+  },
+  "exports": {
+    ".": "./lib/index.js",
+    "./core": "./lib/core/analyze.js",
+    "./session": "./lib/core/session.js",
+    "./cordis.patch.yml": "./cordis.patch.yml",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "cordis.patch.yml",
+    "README.md",
+    "README.en.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=22.15.0"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "^4.0.1"
+  },
+  "peerDependenciesMeta": {
+    "@deepseek-ai/cordis": {
+      "optional": true
+    }
+  },
+  "keywords": [
+    "dsh",
+    "deepseek-harness",
+    "plugin",
+    "agent",
+    "reasoning",
+    "observability",
+    "eval",
+    "thinking"
+  ],
+  "license": "MIT"
+}

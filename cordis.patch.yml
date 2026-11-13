@@ -1,0 +1,5 @@
+# dsh-deep-think bundle patch
+# 把本插件插入 profile roster。host 侧入口为 exports "."。
+- insert:
+    - id: deep-think
+      name: dsh-deep-think
