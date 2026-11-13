@@ -147,6 +147,27 @@ deep-think --limit 3
 
 ---
 
+## 三种模式，由你选（切换不用重启）
+
+拦截策略不是写死的，运行时可切。配置落在 `~/.dsh/deep-think.config.json`，每轮读取（1 秒缓存），改完立即生效。
+
+```bash
+deep-think --status          # 看当前模式 + 最近的记账
+deep-think --mode off        # 完全不动
+deep-think --mode warn       # 只记账，不打断（推荐先用这个）
+deep-think --mode reject     # 不合格就打回重做
+```
+
+| 模式 | 行为 | 适用 |
+|---|---|---|
+| `off` | 什么都不做，只有 CLI/工具可用 | 只想要观测数据 |
+| `warn` | 判定照算，把违规写进 `~/.dsh/deep-think-violations.log`，**不打断会话** | 先观察一周误报率 |
+| `reject` | 注入驳回指令、强制重做（每轮最多 1 次，全会话 3 次熔断） | 已知误报率低之后 |
+
+`warn` 的记账用 `deep-think --status` 直接看，不用翻日志文件。
+
+---
+
 ## 验证状态（v0.3 实测）
 
 ```bash

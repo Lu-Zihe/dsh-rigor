@@ -1,7 +1,7 @@
 {
   "name": "dsh-deep-think",
-  "version": "0.3.0",
-  "description": "Measure how much an agent thinks before it acts. Parses DeepSeek Harness session logs and reports thinking-before-acting, eager-acting rate, and unsourced-claim rate; optionally rejects and forces a redo. 量化 Agent「动手前想了几句话」，不达标的回答会被驳回重写。",
+  "version": "0.4.0",
+  "description": "Measure how much an agent thinks before it acts. Parses DeepSeek Harness session logs and reports thinking-before-acting, eager-acting rate and unsourced-claim rate; three runtime switchable modes (off/warn/reject) decide whether a non-compliant answer is merely logged or sent back for a redo.",
   "type": "module",
   "main": "lib/index.js",
   "types": "lib/types/index.d.ts",

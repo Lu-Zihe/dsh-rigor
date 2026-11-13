@@ -348,6 +348,42 @@ test('turn 变化后状态重置，可再次评估', async () => {
   assert.equal(called, 2, `两个不同 turn 各驳一次，实际 ${called}`)
 })
 
+// ---------- 运行时模式切换（三种形态，用户自选） ----------
+import os from 'node:os'
+import path from 'node:path'
+import { setMode, currentMode, appendViolation, recentViolations, configPath } from '../lib/core/config.js'
+
+test('模式可切换：off / warn / reject，非法值报错', () => {
+  const dir = path.join(os.tmpdir(), `dt-${Date.now()}-${Math.random().toString(16).slice(2)}`)
+  process.env.DEEP_THINK_HOME = dir
+  try {
+    assert.equal(currentMode('off'), 'off', '空配置时回落到 fallback')
+    setMode('warn')
+    assert.equal(currentMode('off'), 'warn')
+    setMode('reject')
+    assert.equal(currentMode('off'), 'reject')
+    setMode('off')
+    assert.equal(currentMode('off'), 'off')
+    assert.throws(() => setMode('bad'), /只能是/)
+  } finally {
+    delete process.env.DEEP_THINK_HOME
+  }
+})
+
+test('warn 记账：写入后可读回', () => {
+  const dir = path.join(os.tmpdir(), `dt-${Date.now()}-${Math.random().toString(16).slice(2)}`)
+  process.env.DEEP_THINK_HOME = dir
+  try {
+    appendViolation({ turn: 7, summary: '无源断言 3 处' })
+    const lines = recentViolations(5)
+    assert.equal(lines.length, 1)
+    assert.ok(lines[0].includes('turn=7'))
+    assert.ok(lines[0].includes('无源断言'))
+  } finally {
+    delete process.env.DEEP_THINK_HOME
+  }
+})
+
 // ---------- 输出 ----------
 console.log('\n=== deep-think 功能自检 ===\n')
 for (const line of results) console.log(line)
