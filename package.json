@@ -1,12 +1,12 @@
 {
-  "name": "dsh-deep-think",
-  "version": "0.5.1",
-  "description": "Measure how much an agent thinks before it acts. Parses DeepSeek Harness session logs and reports thinking-before-acting, eager-acting rate and unsourced-claim rate; three runtime switchable modes (off/warn/reject) decide whether a non-compliant answer is merely logged or sent back for a redo.",
+  "name": "dsh-rigor",
+  "version": "0.6.0",
+  "description": "Rigor for agent answers: measure how much the model thinks before it acts, audit unsourced factual claims, and send non-compliant answers back for a redo. 三档模式可视化切换。",
   "type": "module",
   "main": "lib/index.js",
   "types": "lib/types/index.d.ts",
   "bin": {
-    "deep-think": "lib/cli.js"
+    "rigor": "lib/cli.js"
   },
   "exports": {
     ".": {
@@ -56,7 +56,7 @@
       "dsh": ">=0.1.0-rc.8",
       "verified": true,
       "verifiedOn": "2026-11-13, DSH desktop 0.2.0-rc.2",
-      "note": "CLI、工具注册、客户端设置区块的宿主路由均已在真实 DSH 桌面 0.2.0-rc.2 验证（工具数 169→170；/api/dsh-deep-think/mode 实测可切换 off/warn/reject）。拦截（reject）语义实测会造成 turn 延长，默认 off，自行开启需确认误报率。"
+      "note": "CLI、工具注册、客户端设置区块的宿主路由均已在真实 DSH 桌面 0.2.0-rc.2 验证（工具数 169→170；/api/dsh-rigor/mode 实测可切换 off/warn/reject）。拦截（reject）语义实测会造成 turn 延长，默认 off，自行开启需确认误报率。"
     },
     "client": {
       "platform": "web",
@@ -81,10 +81,11 @@
     "plugin",
     "agent",
     "reasoning",
-    "thinking",
+    "rigor",
+    "auditability",
+    "guardrail",
     "observability",
-    "eval",
-    "guardrail"
+    "eval"
   ],
   "license": "MIT"
 }

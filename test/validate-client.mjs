@@ -132,7 +132,7 @@ check('factory 返回 { apply, inject }，且 apply 能注册 settings.section',
   }
   mod.apply(ctx)
   assert(registered, 'apply 没有注册任何 settings.section')
-  assert(registered.meta.id === 'deep-think', '注册的 id 不对')
+  assert(registered.meta.id === 'rigor', '注册的 id 不对')
   assert(typeof registered.component === 'function', '注册的组件不是函数')
 })
 

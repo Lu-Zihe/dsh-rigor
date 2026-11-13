@@ -1,4 +1,4 @@
-# dsh-deep-think
+# dsh-rigor
 
 **量化 Agent「动手前到底想了几句话」。**
 
@@ -7,7 +7,7 @@
 - 解析 DeepSeek Harness 的会话日志（`session.v4.jsonl.zstd`，多帧 zstd，逐帧解压）
 - 算出每轮的核心指标：**动手前推理字数**、**急切动手率**、**无源断言率**
 - 输出 Markdown / JSON，可以接进任何看板或 CI
-- 同时提供 DSH 插件形态（注册 `deepthink_report` 工具 + 注入思考协议）
+- 同时提供 DSH 插件形态（注册 `rigor_report` 工具 + 注入思考协议）
 
 > 依赖：Node ≥ 22.15（需要 `zlib.zstdDecompressSync`）。零第三方依赖。
 
@@ -64,7 +64,7 @@ node lib/cli.js --json
 
 ```bash
 npm i -g .   # 或 pnpm link --global
-deep-think --limit 3
+rigor --limit 3
 ```
 
 ### 真实输出（本机实测，63 轮）
@@ -149,27 +149,27 @@ deep-think --limit 3
 
 ## 三种模式，由你选（切换不用重启）
 
-拦截策略不是写死的，运行时可切。配置落在 `~/.dsh/deep-think.config.json`，每轮读取（1 秒缓存），改完立即生效。
+拦截策略不是写死的，运行时可切。配置落在 `~/.dsh/rigor.config.json`，每轮读取（1 秒缓存），改完立即生效。
 
 **两种切法**：
 
-1. **图形界面**：设置 → 侧栏 `Deep Think` → 三个按钮（关闭 / 只记账 / 打回重做），点完立即生效
+1. **图形界面**：设置 → 侧栏 `严谨度 Rigor` → 三个按钮（关闭 / 只记账 / 打回重做），点完立即生效
 2. **命令行**：
 
 ```bash
-deep-think --status          # 看当前模式 + 最近的记账
-deep-think --mode off        # 完全不动
-deep-think --mode warn       # 只记账，不打断（推荐先用这个）
-deep-think --mode reject     # 不合格就打回重做
+rigor --status          # 看当前模式 + 最近的记账
+rigor --mode off        # 完全不动
+rigor --mode warn       # 只记账，不打断（推荐先用这个）
+rigor --mode reject     # 不合格就打回重做
 ```
 
 | 模式 | 行为 | 适用 |
 |---|---|---|
 | `off` | 什么都不做，只有 CLI/工具可用 | 只想要观测数据 |
-| `warn` | 判定照算，把违规写进 `~/.dsh/deep-think-violations.log`，**不打断会话** | 先观察一周误报率 |
+| `warn` | 判定照算，把违规写进 `~/.dsh/rigor-violations.log`，**不打断会话** | 先观察一周误报率 |
 | `reject` | 注入驳回指令、强制重做（每轮最多 1 次，全会话 3 次熔断） | 已知误报率低之后 |
 
-`warn` 的记账用 `deep-think --status` 直接看，不用翻日志文件。
+`warn` 的记账用 `rigor --status` 直接看，不用翻日志文件。
 
 ---
 
@@ -185,7 +185,7 @@ npm test     # 29 项断言，全绿
 | 真实会话跑通（本机 64 轮、800+ 个 zstd frame） | ✅ |
 | `--limit N` / `--json` / `--out`（含自动建目录） | ✅ |
 | 坏路径 / 空输入 | ✅ 非零退出 + 可读报错 |
-| **插件半在真实宿主挂载 + 工具被模型调用** | ✅ DSH 桌面 0.2.0-rc.2：工具数 **169 → 170**，`deepthink_report` 实际返回报告 |
+| **插件半在真实宿主挂载 + 工具被模型调用** | ✅ DSH 桌面 0.2.0-rc.2：工具数 **169 → 170**，`rigor_report` 实际返回报告 |
 | 拦截半（打回重做） | ⚠️ 默认 `off`，未启用（见上方事故记录） |
 
 ### 真机挂载踩到的四个坑（写下来省别人的时间）
@@ -216,17 +216,17 @@ npm test     # 29 项断言，全绿
 
 ```bash
 # 1. 放进 profile 的 node_modules
-cp -r dsh-deep-think ~/.dsh/profiles/desktop/node_modules/
+cp -r dsh-rigor ~/.dsh/profiles/desktop/node_modules/
 
 # 2. 在 profile 的 package.json 里加入 dsh.profile.bundles
-#    "dsh": { "profile": { "bundles": ["dsh-deep-think"] } }
+#    "dsh": { "profile": { "bundles": ["dsh-rigor"] } }
 
 # 3. 重启 DSH
 ```
 
 挂载后：
 
-- 注册工具 `deepthink_report`（Agent 可以自己查"我这轮想够了吗"）
+- 注册工具 `rigor_report`（Agent 可以自己查"我这轮想够了吗"）
 - 尝试向系统提示注入「深度思考协议」（若 `ctx.systemPrompt.section` 不存在则静默降级，只记 debug 日志）
 
 **插件半是尽力而为的**：宿主 API 变化会让它降级，但 CLI 与 `/core` 永远可用，不依赖宿主。

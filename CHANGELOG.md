@@ -36,5 +36,5 @@
 - 四项指标：`thinkingBeforeActing` / `eagerActingRate` / `depthRatio` / `unsourcedClaimRate`。
 - CLI：`--session` / `--root` / `--limit` / `--json` / `--out` / `--title`。
 - Markdown 报告与逐轮明细（最急的 12 轮）。
-- 插件骨架：prompt 注入（尽力而为）+ `deepthink_report` 工具（多候选 API 注册）。
+- 插件骨架：prompt 注入（尽力而为）+ `rigor_report` 工具（多候选 API 注册）。
 - 自检：15 项断言。

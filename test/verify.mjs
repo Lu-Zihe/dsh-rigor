@@ -139,7 +139,7 @@ test('插件 apply：空 ctx 不抛错（全降级）', () => {
   const ctx = { logger: { info: (m) => logs.push(m), warn: (m) => logs.push(m), debug: (m) => logs.push(m) } }
   const dispose = apply(ctx, DEFAULT_CONFIG)
   assert.equal(typeof dispose, 'function')
-  assert.ok(logs.some((l) => String(l).includes('deep-think')), '应留下日志')
+  assert.ok(logs.some((l) => String(l).includes('rigor')), '应留下日志')
 })
 
 test('插件 apply：systemPrompt.section 存在时被调用一次', () => {
@@ -160,7 +160,7 @@ test('插件 apply：tools.register 存在时注册工具', () => {
   }
   apply(ctx, DEFAULT_CONFIG)
   assert.ok(registered, '应注册工具')
-  assert.equal(registered.name, 'deepthink_report')
+  assert.equal(registered.name, 'rigor_report')
   assert.equal(typeof registered.execute, 'function')
 })
 
@@ -223,7 +223,7 @@ test('注入消息形态正确', () => {
   const m = buildInjectedMessage('hi', 1)
   assert.equal(m.role, 'user')
   assert.equal(m.content[0].type, 'text')
-  assert.ok(m.id.startsWith('deep-think-reject-'))
+  assert.ok(m.id.startsWith('rigor-reject-'))
 })
 
 test('插件拦截闭环：session/event 累积 → turn-stopping 触发注入', async () => {
@@ -260,7 +260,7 @@ test('插件拦截闭环：session/event 累积 → turn-stopping 触发注入',
 // ---------- 标识符误报（实测被自己插件驳回后修的） ----------
 test('标识符/版本/哈希里的数字不算断言', () => {
   for (const line of [
-    'id: "deep-think-reject-1794541465618-1"',
+    'id: "rigor-reject-1794541465618-1"',
     '当前版本 v0.2.0 已经发布出去',
     '校验值 40c3df57c499 已经写入文件',
     '提交 9f2a1c8b3d4e5f60 已经合并进主干',
@@ -355,7 +355,7 @@ import { setMode, currentMode, appendViolation, recentViolations, configPath } f
 
 test('模式可切换：off / warn / reject，非法值报错', () => {
   const dir = path.join(os.tmpdir(), `dt-${Date.now()}-${Math.random().toString(16).slice(2)}`)
-  process.env.DEEP_THINK_HOME = dir
+  process.env.RIGOR_HOME = dir
   try {
     assert.equal(currentMode('off'), 'off', '空配置时回落到 fallback')
     setMode('warn')
@@ -366,13 +366,13 @@ test('模式可切换：off / warn / reject，非法值报错', () => {
     assert.equal(currentMode('off'), 'off')
     assert.throws(() => setMode('bad'), /只能是/)
   } finally {
-    delete process.env.DEEP_THINK_HOME
+    delete process.env.RIGOR_HOME
   }
 })
 
 test('warn 记账：写入后可读回', () => {
   const dir = path.join(os.tmpdir(), `dt-${Date.now()}-${Math.random().toString(16).slice(2)}`)
-  process.env.DEEP_THINK_HOME = dir
+  process.env.RIGOR_HOME = dir
   try {
     appendViolation({ turn: 7, summary: '无源断言 3 处' })
     const lines = recentViolations(5)
@@ -380,12 +380,12 @@ test('warn 记账：写入后可读回', () => {
     assert.ok(lines[0].includes('turn=7'))
     assert.ok(lines[0].includes('无源断言'))
   } finally {
-    delete process.env.DEEP_THINK_HOME
+    delete process.env.RIGOR_HOME
   }
 })
 
 // ---------- 输出 ----------
-console.log('\n=== deep-think 功能自检 ===\n')
+console.log('\n=== rigor 功能自检 ===\n')
 for (const line of results) console.log(line)
 console.log(`\n通过 ${pass} / ${pass + fail}${fail ? `，失败 ${fail}` : ''}\n`)
 process.exit(fail ? 1 : 0)

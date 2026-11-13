@@ -1,4 +1,4 @@
-# dsh-deep-think
+# dsh-rigor
 
 **Measure how much an agent thinks before it acts.**
 
