@@ -111,6 +111,9 @@ deep-think --limit 3
 | `agent.inject(msg)` / `agent.steer(msg)` / `agent.followup(msg)` | `send(msg, target, wakeup)`，`target ∈ {next-step, next-turn}` | 把驳回指令塞进下一步 |
 | `agent.inbox.splice(target, start, removed, [msg])` | 直接操作 inbox | 兜底路径 |
 
+> **`agent/turn-stopping` 这个钩子是上游官方文档承认的扩展点。** `dsh-agent-loop` 自带 README 原文：
+> 「没有内置轮次预算——工具调用或 steering 会让当前轮次继续；限制失控轮次的策略必须从既有生命周期扩展点（如 `agent/turn-stopping`）执行取消。」
+
 **驳回规则（可配）**：
 
 | 规则 | 默认 | 说明 |
