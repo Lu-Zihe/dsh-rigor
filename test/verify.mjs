@@ -253,6 +253,25 @@ test('插件拦截闭环：session/event 累积 → turn-stopping 触发注入',
   assert.ok(injected.content[0].text.includes('驳回'), '注入内容应为驳回指令')
 })
 
+// ---------- 标识符误报（实测被自己插件驳回后修的） ----------
+test('标识符/版本/哈希里的数字不算断言', () => {
+  for (const line of [
+    'id: "deep-think-reject-1794541465618-1"',
+    '当前版本 v0.2.0 已经发布出去',
+    '校验值 40c3df57c499 已经写入文件',
+    '提交 9f2a1c8b3d4e5f60 已经合并进主干',
+  ]) {
+    const r = countUnsourcedClaims(line)
+    assert.equal(r.numericLines, 0, `不该计入: ${line}`)
+  }
+})
+
+test('真正的统计数字仍会被抓到', () => {
+  const r = countUnsourcedClaims('这一批的完成率是 95%，但整段没有任何出处。')
+  assert.equal(r.numericLines, 1)
+  assert.equal(r.unsourced, 1)
+})
+
 // ---------- 输出 ----------
 console.log('\n=== deep-think 功能自检 ===\n')
 for (const line of results) console.log(line)
