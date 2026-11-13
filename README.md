@@ -91,6 +91,40 @@ deep-think --limit 3
 
 ---
 
+## v0.2「打回重做」——它到底能拦到什么程度
+
+**必须说清：宿主没有 output guard，所以「拦住不让显示」做不到。** 能做到的是**打回**：
+
+```
+模型给出回答 → turn 即将结束前评估
+   ├─ 合规 → 正常结束
+   └─ 违规 → 往 agent 的 next-step inbox 注入一条驳回指令
+              → turn 不结束 → 模型必须带检索重答
+              → 连续驳回超过上限（默认 2 次）则放行并记 warn，防止烧钱死循环
+```
+
+**三个已从 `app.asar` 读到的宿主 API**（不是猜的）：
+
+| API | 形态 | 用途 |
+|---|---|---|
+| `ctx.on("agent/pre-step", async (payload, next) => …)` | 步骤中间件，有 `next()` | 在步骤边界插逻辑 |
+| `agent.inject(msg)` / `agent.steer(msg)` / `agent.followup(msg)` | `send(msg, target, wakeup)`，`target ∈ {next-step, next-turn}` | 把驳回指令塞进下一步 |
+| `agent.inbox.splice(target, start, removed, [msg])` | 直接操作 inbox | 兜底路径 |
+
+**驳回规则（可配）**：
+
+| 规则 | 默认 | 说明 |
+|---|---|---|
+| `minToolCalls` | 1 | 本轮 0 次检索却给数字 → 直接驳回 |
+| `maxUnsourcedCount` | 3 | 无源断言绝对条数 |
+| `maxUnsourcedRate` | 0.25 | 无源断言占比 |
+| `maxRejections` | 2 | 驳回上限，超过就放行（防死循环） |
+| `mode` | `reject` | `warn` 只记账不驳回；`off` 关闭 |
+
+**已验证到什么程度**：拦截判定 + 注入闭环（用假 agent）有 8 项测试；真实宿主挂载**未验证**。
+
+---
+
 ## 验证状态（v0.1 实测）
 
 ```bash

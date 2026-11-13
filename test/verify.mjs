@@ -176,6 +176,83 @@ test('插件注入的 prompt 包含三条铁律关键词', () => {
   }
 })
 
+// ---------- 拦截层 ----------
+import { DEFAULT_POLICY, evaluateTurn, buildRejectionMessage, buildInjectedMessage } from '../lib/core/intercept.js'
+
+test('拦截：0 次检索 + 带数字结论 → 驳回', () => {
+  const v = evaluateTurn({ answerText: '完成率 95%，一共 3 个模块', toolCalls: 0 })
+  assert.equal(v.ok, false)
+  assert.equal(v.action, 'reject')
+  assert.ok(v.violations.length >= 1)
+})
+
+test('拦截：检索过且来源齐全 → 放行', () => {
+  const v = evaluateTurn({ answerText: '完成率 95%，见 docs/r.md 第 12 行', toolCalls: 3 })
+  assert.equal(v.ok, true)
+})
+
+test('拦截：无源断言超阈值 → 驳回并带样例', () => {
+  const text = [
+    '这一批的完成率是 95%，但整段没有任何出处。',
+    '错误率稳定在 3% 左右，这个数字没有人核对过。',
+    '单次耗时 120 分钟，也是凭印象给的。',
+    '最后一句没有任何数字，纯属废话。',
+  ].join('\n')
+  const v = evaluateTurn({ answerText: text, toolCalls: 5 })
+  assert.equal(v.ok, false)
+  assert.ok(v.detail.unsourced >= 3, `unsourced=${v.detail.unsourced}`)
+})
+
+test('拦截：达到驳回上限 → give_up（不死循环）', () => {
+  const v = evaluateTurn({ answerText: '完成率 95% 无出处', toolCalls: 0, rejections: DEFAULT_POLICY.maxRejections })
+  assert.equal(v.action, 'give_up')
+  assert.equal(v.ok, false)
+})
+
+test('拦截：mode=off 直接放行', () => {
+  const v = evaluateTurn({ answerText: '完成率 95% 无出处', toolCalls: 0 }, { mode: 'off' })
+  assert.equal(v.ok, true)
+})
+
+test('驳回指令包含四项要求', () => {
+  const msg = buildRejectionMessage(['违规一'], 1)
+  for (const kw of ['驳回', '检索', '【未核实】', '重新组织']) assert.ok(msg.includes(kw), `缺少 ${kw}`)
+})
+
+test('注入消息形态正确', () => {
+  const m = buildInjectedMessage('hi', 1)
+  assert.equal(m.role, 'user')
+  assert.equal(m.content[0].type, 'text')
+  assert.ok(m.id.startsWith('deep-think-reject-'))
+})
+
+test('插件拦截闭环：session/event 累积 → turn-stopping 触发注入', async () => {
+  const handlers = new Map()
+  const ctx = {
+    logger: { info() {}, warn() {}, debug() {} },
+    on: (name, h) => {
+      handlers.set(name, h)
+      return () => {}
+    },
+  }
+  apply(ctx, { injectPrompt: false, registerTool: false, policy: { minToolCalls: 1, maxUnsourcedCount: 1 } })
+
+  const onSession = handlers.get('session/event')
+  const onStop = handlers.get('agent/turn-stopping')
+  assert.ok(onSession && onStop, '两个事件都应注册')
+
+  const session = { id: 's-test' }
+  onSession(session, { type: 'turn/start', data: { turn: 1 } })
+  onSession(session, { type: 'assistant/message', data: { message: { content: [{ type: 'text', text: '完成率 95% 完全没出处' }] } } })
+
+  let injected = null
+  const agent = { id: 'a-test', inject: (m) => { injected = m; return true } }
+  await onStop({ agent, session, turn: 1 })
+
+  assert.ok(injected, '应当注入驳回消息')
+  assert.ok(injected.content[0].text.includes('驳回'), '注入内容应为驳回指令')
+})
+
 // ---------- 输出 ----------
 console.log('\n=== deep-think 功能自检 ===\n')
 for (const line of results) console.log(line)
