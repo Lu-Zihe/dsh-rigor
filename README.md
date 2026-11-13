@@ -147,21 +147,29 @@ deep-think --limit 3
 
 ---
 
-## 验证状态（v0.1 实测）
+## 验证状态（v0.3 实测）
 
 ```bash
-npm test     # 15 项断言，全绿
+npm test     # 29 项断言，全绿
 ```
 
 | 项 | 状态 |
 |---|---|
-| 合成数据精确断言（轮次归属 / 首步推理 / 急切率 / effort 历史 / 无源断言） | ✅ 15/15 |
-| 真实会话跑通（本机 64 轮，706–814 个 zstd frame） | ✅ |
+| 合成数据精确断言（轮次归属 / 首步推理 / 急切率 / effort 历史 / 无源断言 / 防自跑） | ✅ 29/29 |
+| 真实会话跑通（本机 64 轮、800+ 个 zstd frame） | ✅ |
 | `--limit N` / `--json` / `--out`（含自动建目录） | ✅ |
 | 坏路径 / 空输入 | ✅ 非零退出 + 可读报错 |
-| 插件半在真实宿主里挂载 | ⚠️ **未验证**（用桩 ctx 验证了不抛错、降级、注册调用） |
+| **插件半在真实宿主挂载 + 工具被模型调用** | ✅ DSH 桌面 0.2.0-rc.2：工具数 **169 → 170**，`deepthink_report` 实际返回报告 |
+| 拦截半（打回重做） | ⚠️ 默认 `off`，未启用（见上方事故记录） |
 
-### 开发中改掉的三个 bug（都会让指标失真，所以写在这）
+### 真机挂载踩到的四个坑（写下来省别人的时间）
+
+1. **必须 `export const inject = ['tools', 'systemPrompt']`**。不声明时 `apply` 收到的 `ctx` 只有一个自有键 `fiber`，`ctx.tools` 是 `undefined`。注意 `ctx.on` 是原型方法、不需要注入——所以「钩子能跑、工具注册不上」是同一个原因造成的假象。
+2. **`ctx.harness` / `ctx.agents` / `ctx.sessions` 未注入时，访问即抛**（`typeof` 得到 `'throw'`，报 `cannot get property "harness" without inject`）。任何探测都要包 `try/catch`，否则一次属性读取就让 `apply` 当场中断。
+3. **`ctx.tools.register(definition)` 强制要求 `output: { schema, render, presentationMeta? }`**，缺了直接 `TypeError`。`render(args, value)` 必须返回**内容块数组**：`[{ type: 'text', text: String(value) }]`。
+4. **不要用 `Object.keys(ctx)` 判断服务是否存在**——注入的服务是非枚举属性，`Object.keys` 看不到；要用 `typeof ctx.tools === 'object'` 直接探，并包 `try/catch`。
+
+### CLI 开发中改掉的三个 bug（都会让指标失真）
 
 1. **幽灵轮次**：`runtime-context` 注入消息被当成人输入，63 轮被算成 118 轮。修法：只认 `source.kind === 'user'`。
 2. **首步被掩盖**：原来取「本 turn 所有步骤的最大推理字数」，第一步想两句、第三步想三千字时指标显示后者。改为只取**第一步**。
