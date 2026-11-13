@@ -56,7 +56,7 @@
       "dsh": ">=0.1.0-rc.8",
       "verified": true,
       "verifiedOn": "2026-11-13, DSH desktop 0.2.0-rc.2",
-      "note": "工具注册与 CLI 已在真实宿主验证（工具数 169→170，deepthink_report 可调用）；拦截半仍默认 off，未启用。"
+      "note": "CLI、工具注册、客户端设置区块的宿主路由均已在真实 DSH 桌面 0.2.0-rc.2 验证（工具数 169→170；/api/dsh-deep-think/mode 实测可切换 off/warn/reject）。拦截（reject）语义实测会造成 turn 延长，默认 off，自行开启需确认误报率。"
     },
     "client": {
       "platform": "web",
