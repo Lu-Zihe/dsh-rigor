@@ -24,6 +24,10 @@
   "engines": {
     "node": ">=22.15.0"
   },
+  "scripts": {
+    "test": "node test/verify.mjs",
+    "report": "node lib/cli.js"
+  },
   "dsh": {
     "bundle": {
       "patch": "./cordis.patch.yml"
