@@ -41,7 +41,8 @@
     "lib/client.js"
   ],
   "engines": {
-    "node": ">=22.15.0"
+    "node": ">=22.15.0",
+    "dsh": ">=0.2.0-rc.1 <0.3.0"
   },
   "scripts": {
     "test": "node test/verify.mjs",
@@ -53,10 +54,10 @@
       "patch": "./cordis.patch.yml"
     },
     "compatibility": {
-      "dsh": ">=0.1.0-rc.8",
-      "verified": true,
+      "informational": true,
+      "note": "dsh 的门禁只读 engines.dsh（其次 @deepseek-ai/dsh* 的 peerDependencies），本字段仅供人读。",
       "verifiedOn": "2026-11-13, DSH desktop 0.2.0-rc.2",
-      "note": "CLI、工具注册、客户端设置区块的宿主路由均已在真实 DSH 桌面 0.2.0-rc.2 验证（工具数 169→170；/api/dsh-rigor/mode 实测可切换 off/warn/reject）。拦截（reject）语义实测会造成 turn 延长，默认 off，自行开启需确认误报率。"
+      "verifiedScope": "CLI、工具注册、客户端设置区块路由、三档模式切换"
     },
     "client": {
       "platform": "web",
