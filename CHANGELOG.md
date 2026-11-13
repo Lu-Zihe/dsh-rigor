@@ -5,10 +5,29 @@
 ## [Unreleased]
 
 ### Planned
-- 在真实 DSH profile 上完成拦截半的挂载验证（当前唯一未验证项）
 - 跨会话趋势图（按天/周统计急切动手率）
 - 把无源断言的启发式判定替换为显式引用标记（`[1]` / 脚注）
-- 设置界面（`@deepseek-ai/dsh-client-ui-settings` 插槽）
+- 工具卡片里直接渲染报告（当前是纯文本）
+
+## [0.6.0] — 2026-11-13
+
+### Changed（breaking）
+- **项目改名 `dsh-deep-think` → `dsh-rigor`**。旧名描述的是「想要的效果」（让模型想得深），新名描述的是「被度量的标准」（严谨度：过程想够不够 + 结论有没有来源）。功能未变。
+- 工具名 `deepthink_report` → `rigor_report`；命令 `deep-think` → `rigor`
+- 配置与记账文件改到 `~/.dsh/rigor.config.json`、`~/.dsh/rigor-violations.log`
+- HTTP 接口改到 `/api/dsh-rigor/{state,mode}`；客户端插槽 id 改为 `rigor`
+- 诊断探针改为 `RIGOR_PROBE=1` 才启用（此前写死文件路径，开源前清理）
+
+## [0.5.0] — 2026-11-13
+
+### Added
+- **浏览器半**：设置页新增区块，三个按钮切换 关闭 / 只记账 / 打回重做，点击即时生效。
+- 宿主侧 loopback 接口 `/api/dsh-rigor/{state,mode}`。
+- `test/validate-client.mjs`：复刻宿主 `client-modules` 校验，能在安装前发现「声明了 `dsh.client` 却没有 `exports["./client"]`」这类会让应用起不来的错误。
+
+### Fixed
+- `exports["./client"]` 缺失导致 DSH 启动崩溃（第三方插件被系统整体禁用）。
+- 工具选择错误会话：改为按 mtime 取最新，而不是目录遍历顺序。
 
 ## [0.2.0] — 2026-11-13
 
