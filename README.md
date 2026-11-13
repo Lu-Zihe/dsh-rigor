@@ -151,6 +151,11 @@ deep-think --limit 3
 
 拦截策略不是写死的，运行时可切。配置落在 `~/.dsh/deep-think.config.json`，每轮读取（1 秒缓存），改完立即生效。
 
+**两种切法**：
+
+1. **图形界面**：设置 → 侧栏 `Deep Think` → 三个按钮（关闭 / 只记账 / 打回重做），点完立即生效
+2. **命令行**：
+
 ```bash
 deep-think --status          # 看当前模式 + 最近的记账
 deep-think --mode off        # 完全不动

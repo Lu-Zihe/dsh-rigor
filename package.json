@@ -1,6 +1,6 @@
 {
   "name": "dsh-deep-think",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "Measure how much an agent thinks before it acts. Parses DeepSeek Harness session logs and reports thinking-before-acting, eager-acting rate and unsourced-claim rate; three runtime switchable modes (off/warn/reject) decide whether a non-compliant answer is merely logged or sent back for a redo.",
   "type": "module",
   "main": "lib/index.js",
@@ -29,12 +29,13 @@
     "./package.json": "./package.json"
   },
   "files": [
-    "lib",
-    "cordis.patch.yml",
-    "README.md",
-    "README.en.md",
     "CHANGELOG.md",
-    "LICENSE"
+    "LICENSE",
+    "README.en.md",
+    "README.md",
+    "cordis.patch.yml",
+    "lib",
+    "lib/client.js"
   ],
   "engines": {
     "node": ">=22.15.0"
@@ -52,6 +53,12 @@
       "verified": true,
       "verifiedOn": "2026-11-13, DSH desktop 0.2.0-rc.2",
       "note": "工具注册与 CLI 已在真实宿主验证（工具数 169→170，deepthink_report 可调用）；拦截半仍默认 off，未启用。"
+    },
+    "client": {
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-slots"
+      ],
+      "platform": "web"
     }
   },
   "peerDependencies": {
