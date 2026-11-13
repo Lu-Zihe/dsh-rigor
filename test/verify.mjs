@@ -235,7 +235,11 @@ test('插件拦截闭环：session/event 累积 → turn-stopping 触发注入',
       return () => {}
     },
   }
-  apply(ctx, { injectPrompt: false, registerTool: false, policy: { minToolCalls: 1, maxUnsourcedCount: 1 } })
+  apply(ctx, {
+    injectPrompt: false,
+    registerTool: false,
+    policy: { mode: 'reject', minToolCalls: 1, maxUnsourcedCount: 1 },
+  })
 
   const onSession = handlers.get('session/event')
   const onStop = handlers.get('agent/turn-stopping')
@@ -243,7 +247,7 @@ test('插件拦截闭环：session/event 累积 → turn-stopping 触发注入',
 
   const session = { id: 's-test' }
   onSession(session, { type: 'turn/start', data: { turn: 1 } })
-  onSession(session, { type: 'assistant/message', data: { message: { content: [{ type: 'text', text: '完成率 95% 完全没出处' }] } } })
+  onSession(session, { type: 'assistant/message', data: { turn: 1, message: { content: [{ type: 'text', text: '完成率 95% 完全没出处' }] } } })
 
   let injected = null
   const agent = { id: 'a-test', inject: (m) => { injected = m; return true } }
@@ -270,6 +274,78 @@ test('真正的统计数字仍会被抓到', () => {
   const r = countUnsourcedClaims('这一批的完成率是 95%，但整段没有任何出处。')
   assert.equal(r.numericLines, 1)
   assert.equal(r.unsourced, 1)
+})
+
+// ---------- 事故回归：防自跑 ----------
+function makeCtx() {
+  const handlers = new Map()
+  const ctx = {
+    logger: { info() {}, warn() {}, debug() {} },
+    on: (name, h) => {
+      handlers.set(name, h)
+      return () => {}
+    },
+  }
+  return { ctx, handlers }
+}
+
+test('默认策略是 warn：不注入，只记账', async () => {
+  const { ctx, handlers } = makeCtx()
+  apply(ctx, { injectPrompt: false, registerTool: false })
+  const onSession = handlers.get('session/event')
+  const onStop = handlers.get('agent/turn-stopping')
+  const session = { id: 's1' }
+  onSession(session, { type: 'assistant/message', data: { turn: 1, message: { content: [{ type: 'text', text: '完成率 95% 完全没出处' }] } } })
+  let called = 0
+  const agent = { id: 'a1', inject: () => { called++; return true } }
+  await onStop({ agent, session, turn: 1 })
+  assert.equal(called, 0, 'warn 模式不该注入')
+})
+
+test('同一 turn 重复 turn-stopping 只注入一次（防自跑）', async () => {
+  const { ctx, handlers } = makeCtx()
+  apply(ctx, { injectPrompt: false, registerTool: false, policy: { mode: 'reject', maxUnsourcedCount: 1 } })
+  const onSession = handlers.get('session/event')
+  const onStop = handlers.get('agent/turn-stopping')
+  const session = { id: 's2' }
+  const msg = { type: 'assistant/message', data: { turn: 1, message: { content: [{ type: 'text', text: '完成率 95% 完全没出处' }] } } }
+  onSession(session, msg)
+  let called = 0
+  const agent = { id: 'a2', inject: () => { called++; return true } }
+  for (let i = 0; i < 5; i++) await onStop({ agent, session, turn: 1 })
+  assert.equal(called, 1, `同一 turn 只该注入一次，实际 ${called}`)
+})
+
+test('同一段文本不重复驳回（哈希去重）', async () => {
+  const { ctx, handlers } = makeCtx()
+  apply(ctx, { injectPrompt: false, registerTool: false, policy: { mode: 'reject', maxUnsourcedCount: 1, maxRejectionsPerTurn: 99 } })
+  const onSession = handlers.get('session/event')
+  const onStop = handlers.get('agent/turn-stopping')
+  const session = { id: 's3' }
+  const text = '完成率 95% 完全没出处'
+  const agent = { id: 'a3', inject: () => true }
+  let called = 0
+  agent.inject = () => { called++; return true }
+  for (let i = 0; i < 3; i++) {
+    onSession(session, { type: 'assistant/message', data: { turn: 1, message: { content: [{ type: 'text', text }] } } })
+    await onStop({ agent, session, turn: 1 })
+  }
+  assert.equal(called, 1, `同样文本只该驳一次，实际 ${called}`)
+})
+
+test('turn 变化后状态重置，可再次评估', async () => {
+  const { ctx, handlers } = makeCtx()
+  apply(ctx, { injectPrompt: false, registerTool: false, policy: { mode: 'reject', maxUnsourcedCount: 1 } })
+  const onSession = handlers.get('session/event')
+  const onStop = handlers.get('agent/turn-stopping')
+  const session = { id: 's4' }
+  let called = 0
+  const agent = { id: 'a4', inject: () => { called++; return true } }
+  onSession(session, { type: 'assistant/message', data: { turn: 1, message: { content: [{ type: 'text', text: '完成率 95% 完全没出处' }] } } })
+  await onStop({ agent, session, turn: 1 })
+  onSession(session, { type: 'assistant/message', data: { turn: 2, message: { content: [{ type: 'text', text: '错误率 88% 也没有出处' }] } } })
+  await onStop({ agent, session, turn: 2 })
+  assert.equal(called, 2, `两个不同 turn 各驳一次，实际 ${called}`)
 })
 
 // ---------- 输出 ----------
