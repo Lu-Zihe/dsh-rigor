@@ -215,21 +215,34 @@ npm test     # 29 项断言，全绿
 ## 作为 DSH 插件安装
 
 ```bash
-# 1. 放进 profile 的 node_modules
-cp -r dsh-rigor ~/.dsh/profiles/desktop/node_modules/
+# 从 npm（发布后）
+dsh plugin --profile <你的 profile> add dsh-rigor
 
-# 2. 在 profile 的 package.json 里加入 dsh.profile.bundles
-#    "dsh": { "profile": { "bundles": ["dsh-rigor"] } }
-
-# 3. 重启 DSH
+# 或直接从仓库
+dsh plugin --profile <你的 profile> add github:<你>/dsh-rigor
 ```
 
-挂载后：
+装完**需要重启 DSH**。CLI 不接受 `desktop` profile 参数，桌面端请在图形界面里装。
 
-- 注册工具 `rigor_report`（Agent 可以自己查"我这轮想够了吗"）
-- 尝试向系统提示注入「深度思考协议」（若 `ctx.systemPrompt.section` 不存在则静默降级，只记 debug 日志）
+### 版本门禁
 
-**插件半是尽力而为的**：宿主 API 变化会让它降级，但 CLI 与 `/core` 永远可用，不依赖宿主。
+```json
+"engines": { "node": ">=22.15.0", "dsh": ">=0.2.0-rc.1 <0.3.0" }
+```
+
+dsh 启动时会读 `engines.dsh`，宿主版本不在范围内会**拒绝安装**（已装上的会在启动时被关掉并在 stderr 说明）。所以它不会悄悄跑在一个不支持的宿主上。
+
+### 装好之后会多出什么
+
+| 东西 | 位置 |
+|---|---|
+| 工具 `rigor_report` | Agent 可直接调用，查「这轮想够了吗」 |
+| 设置区块「严谨度 Rigor」 | 设置页侧栏，三个按钮切模式 |
+| 三档拦截 | 默认 `off`，在设置页里开 |
+| CLI | `node lib/cli.js`，不依赖宿主 |
+
+**任何一半失败都只降级**：提示注入、工具注册、客户端区块、路由注册各自独立 try/catch，一处挂不会拖垮 DSH，也不会影响 CLI。
+
 
 ---
 
